@@ -1,0 +1,75 @@
+OBJECT Codeunit 50070 Menu_imageIA_AltaUsuaris
+{
+  OBJECT-PROPERTIES
+  {
+    Date=22/02/24;
+    Time=13:09:43;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+            CR := 13; // Carriage Return - (Hex $0D)
+            LF := 10; // Line Feed - (Hex $0A)
+
+            Menu := Window.InputBox('1: Introduir nous usuaris' + FORMAT(CR) + FORMAT(LF) +
+                                              '2: Consultar usuaris' + FORMAT(CR) + FORMAT(LF) +
+                                              'Introdueix una opci¢:', 'ImageIA - Usuaris', 'Opci¢', 100, 100);
+            CASE Menu OF
+              '1':
+                BEGIN
+                  AltaUsuari();
+                END;
+              '2':
+                BEGIN
+                  ConsultaUsuari();
+                END;
+            END;
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      Window@1106000003 : DotNet "'Microsoft.VisualBasic, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.Microsoft.VisualBasic.Interaction" RUNONCLIENT;
+      Menu@1106000002 : Text;
+      CR@1106000001 : Char;
+      LF@1106000000 : Char;
+
+    LOCAL PROCEDURE AltaUsuari@1106000001();
+    VAR
+      Usuaris_imageIA@1106000000 : Record 50030;
+    BEGIN
+      EVALUATE(Usuaris_imageIA.Telefon, Window.InputBox('Introduir el telefon del usuari:', 'ImageIA - Alta usuaris', 'Telefon del usuari', 100, 100));
+      EVALUATE(Usuaris_imageIA.NickName, Window.InputBox('Introduir el nickname del usuari:', 'ImageIA - Alta usuaris', 'Nickname del usuari', 100, 100));
+      EVALUATE(Usuaris_imageIA.Email, Window.InputBox('Introduir el correu electronic del usuari:', 'ImageIA - Alta usuaris', 'Correu electronic del usuari', 100, 100));
+
+      Usuaris_imageIA.INSERT(TRUE);
+
+      Window.MsgBox('Usuari donat de alta correctament', 0, 'ImageIA - Alta usuaris');
+    END;
+
+    LOCAL PROCEDURE ConsultaUsuari@1106000006();
+    VAR
+      Usuaris_ImageIA@1106000000 : Record 50030;
+      TelefonACercar@1106000001 : Text[10];
+    BEGIN
+      EVALUATE(TelefonACercar, Window.InputBox('Introduir el telefon del usuari:', 'ImageIA - Consulta usuaris', 'Telefon del usuari', 100, 100));
+      IF Usuaris_ImageIA.GET(TelefonACercar) THEN BEGIN
+        Window.MsgBox('Telefon del usuari: ' + Usuaris_ImageIA.Telefon + FORMAT(CR) + FORMAT(LF) +
+                      'Nickname del usuari: ' + Usuaris_ImageIA.NickName + FORMAT(CR) + FORMAT(LF) +
+                      'Email del usuari: ' + Usuaris_ImageIA.Email + FORMAT(CR) + FORMAT(LF), 0, 'ImageIA - Consulta usuaris');
+
+      END
+      ELSE BEGIN
+        Window.MsgBox('Usuari incorrecte o no existeix', 0, 'ImageIA - Consulta usuaris');
+
+      END;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+

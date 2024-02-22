@@ -1,0 +1,33 @@
+OBJECT Table 50030  Usuaris_imageIA
+{
+  OBJECT-PROPERTIES
+  {
+    Date=22/02/24;
+    Time=12:18:29;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+  }
+  FIELDS
+  {
+    { 1   ;   ;Telefon             ;Text10         }
+    { 2   ;   ;NickName            ;Text30         }
+    { 3   ;   ;Email               ;Text50         }
+  }
+  KEYS
+  {
+    {    ;Telefon                                 ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+
