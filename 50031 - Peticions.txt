@@ -1,0 +1,36 @@
+OBJECT Table 50031 Peticions
+{
+  OBJECT-PROPERTIES
+  {
+    Date=29/02/24;
+    Time=13:49:30;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+  }
+  FIELDS
+  {
+    { 1   ;   ;id                  ;BigInteger     }
+    { 2   ;   ;model               ;Text30         }
+    { 3   ;   ;prompt              ;Text50         }
+    { 4   ;   ;imatges             ;Text100        }
+    { 5   ;   ;data                ;Time           }
+    { 6   ;   ;user                ;BigInteger     }
+  }
+  KEYS
+  {
+    {    ;id                                      ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+
