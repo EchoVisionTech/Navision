@@ -1,0 +1,112 @@
+OBJECT Codeunit 50071 Menu_imageIA_ConsultaPeticions
+{
+  OBJECT-PROPERTIES
+  {
+    Date=23/04/24;
+    Time=13:37:23;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+            CR := 13; // Carriage Return - (Hex $0D)
+            LF := 10; // Line Feed - (Hex $0A)
+
+            Menu := Window.InputBox('1. Consulta peticions de un usuari' + FORMAT(CR) + FORMAT(LF) +
+                                              '2. Consulta peticions de un dia' + FORMAT(CR) + FORMAT(LF) +
+                                              'Introdueix una opci¢:', 'ImageIA - Consulta peticoins', 'Opci¢', 100, 100);
+            CASE Menu OF
+              '1':
+                BEGIN
+                  PeticionsUsuari();
+                END;
+              '2':
+                BEGIN
+                  PeticionsDia();
+                END;
+            END;
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      Window@1106000003 : DotNet "'Microsoft.VisualBasic, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.Microsoft.VisualBasic.Interaction" RUNONCLIENT;
+      Menu@1106000002 : Text;
+      CR@1106000001 : Char;
+      LF@1106000000 : Char;
+      Usuaris_imageIA@1106000005 : Record 50030;
+      Peticions@1106000004 : Record 50031;
+
+    LOCAL PROCEDURE PeticionsUsuari@1106000001();
+    VAR
+      IdUsuari@1106000002 : Record 50032;
+      TelefonACercar@1106000003 : Text[10];
+      FoundUser@1106000004 : Boolean;
+      PetitionInfoUser@1106000005 : Text;
+    BEGIN
+      EVALUATE(TelefonACercar, Window.InputBox('Introduir el telefon del usuari:', 'ImageIA - 1. Consulta peticions de un usuari', 'Telefon del usuari', 100, 100));
+      Usuaris_imageIA.SETFILTER(Telefon, TelefonACercar);
+      IF Usuaris_imageIA.FINDFIRST THEN BEGIN
+        FoundUser := TRUE;
+        // Retrieve petitions for the found user id
+        Peticions.SETRANGE(user, Usuaris_imageIA.id);
+        IF Peticions.FINDSET THEN BEGIN
+          PetitionInfoUser := '';
+          REPEAT
+          PetitionInfoUser := 'Model: ' + Peticions.model + FORMAT(CR) + FORMAT(LF) +
+                                          'Status: ' + Peticions.status + FORMAT(CR) + FORMAT(LF) +
+                                          'Data petici¢: ' + FORMAT(Peticions.data) + FORMAT(CR) + FORMAT(LF) + ' ' + FORMAT(CR) + FORMAT(LF);
+          MESSAGE('Teläfon de l''usuari: ' + TelefonACercar + FORMAT(CR) + FORMAT(LF) + PetitionInfoUser);
+         UNTIL Peticions.NEXT = 0;
+
+
+         END ELSE
+           MESSAGE('No petitions found for the specified phone number.');
+      END ELSE
+        MESSAGE('No user found with the specified phone number.');
+    END;
+
+    LOCAL PROCEDURE PeticionsDia@1106000002();
+    VAR
+      DateToSearchInput@1106000008 : Date;
+      DateTimeToSearch@1106000003 : DateTime;
+      PetitionInfo@1106000000 : Text;
+      StartDateTimeText@1106000001 : Text;
+      EndDateTimeText@1106000009 : Text;
+      PetitionDateTime@1106000002 : DateTime;
+    BEGIN
+      // Get the date to search input from the user
+          EVALUATE(DateToSearchInput, Window.InputBox('Introduir la data de la petici¢ (DD/MM/AAAA):', 'ImageIA - 2. Consulta peticions per data', 'Data de la petici¢', 100, 100));
+
+          // Convert the user inputted date to a DateTime value with time set to midnight
+          DateTimeToSearch := CREATEDATETIME(DateToSearchInput, 0T);
+
+          // Process filtered petitions
+          IF Peticions.FIND('-') THEN BEGIN
+              PetitionInfo := '';
+              REPEAT
+                  // Retrieve user information for the current petition
+                  IF Usuaris_imageIA.GET(Peticions.user) THEN BEGIN
+                      // Check if the petition date matches the specified date
+                      IF DT2DATE(Peticions.data) = DateToSearchInput THEN BEGIN
+                          PetitionInfo := 'Teläfon de l''usuari: ' + Usuaris_imageIA.Telefon + FORMAT(CR) + FORMAT(LF) +
+                                          'Model: ' + Peticions.model + FORMAT(CR) + FORMAT(LF) +
+                                          'Status: ' + Peticions.status + FORMAT(CR) + FORMAT(LF) +
+                                          'Data de la petici¢: ' + FORMAT(Peticions.data);
+                          MESSAGE('Peticions per la data: ' + FORMAT(DateToSearchInput) + FORMAT(CR) + FORMAT(LF) + PetitionInfo)
+                      END;
+                  END;
+              UNTIL Peticions.NEXT = 0;
+
+              IF PetitionInfo = '' THEN
+                  MESSAGE('No s''han trobat peticions per a la data especificada.');
+          END;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+

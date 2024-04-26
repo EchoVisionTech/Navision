@@ -1,0 +1,119 @@
+OBJECT Codeunit 50072 Menu_imageIA_Estad°stiques
+{
+  OBJECT-PROPERTIES
+  {
+    Date=23/04/24;
+    Time=14:01:05;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+            CR := 13; // Carriage Return - (Hex $0D)
+            LF := 10; // Line Feed - (Hex $0A)
+
+            Menu := Window.InputBox('1. Peticions per usuari' + FORMAT(CR) + FORMAT(LF) +
+                                              '2. Peticions per dia' + FORMAT(CR) + FORMAT(LF) +
+                                              '3. Peticions per usuari i dia' + FORMAT(CR) + FORMAT(LF) +
+                                              'Introdueix una opci¢:', 'ImageIA - Estad°stica de peticions', 'Introdueix una opci¢', 100, 100);
+            CASE Menu OF
+              '1':
+                BEGIN
+                  PeticionsUsuari();
+                END;
+              '2':
+                BEGIN
+                  PeticionsDia();
+                END;
+              '3':
+                BEGIN
+                  PeticionsUsuariDia();
+                END;
+            END;
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      Window@1106000005 : DotNet "'Microsoft.VisualBasic, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.Microsoft.VisualBasic.Interaction" RUNONCLIENT;
+      Menu@1106000004 : Text;
+      CR@1106000003 : Char;
+      LF@1106000002 : Char;
+      Usuaris_imageIA@1106000001 : Record 50030;
+      Peticions@1106000000 : Record 50031;
+
+    LOCAL PROCEDURE PeticionsUsuari@1106000000();
+    VAR
+      TelefonACercar@1106000001 : Text;
+      PetitionCount@1106000000 : Integer;
+    BEGIN
+      EVALUATE(TelefonACercar, Window.InputBox('Introduir el teläfon de l''usuari:', 'Comptar peticions per usuari', 'Teläfon de l''usuari', 100, 100));
+
+      Usuaris_imageIA.SETFILTER(Telefon, TelefonACercar);
+      IF Usuaris_imageIA.FINDFIRST THEN BEGIN
+        Peticions.SETRANGE(user, Usuaris_imageIA.id);
+        PetitionCount := Peticions.COUNT;
+      END;
+
+      MESSAGE('Teläfon de l''usuari: ' + TelefonACercar + FORMAT(CR) + FORMAT(LF) +
+              'Nombre de peticions: ' + FORMAT(PetitionCount));
+    END;
+
+    LOCAL PROCEDURE PeticionsDia@1106000001();
+    VAR
+      DateToSearchInput@1106000000 : Date;
+      PetitionCount@1106000001 : Integer;
+    BEGIN
+      EVALUATE(DateToSearchInput, Window.InputBox('Introduir la data de la petici¢ (DD/MM/AAAA):', 'Comptar peticions per data', 'Data de les peticions', 100, 100));
+
+          IF Peticions.FIND('-') THEN BEGIN
+              REPEAT
+                  IF Usuaris_imageIA.GET(Peticions.user) THEN BEGIN
+                      IF DT2DATE(Peticions.data) = DateToSearchInput THEN BEGIN
+                          PetitionCount := PetitionCount + 1
+                      END;
+                  END;
+              UNTIL Peticions.NEXT = 0;
+
+              IF PetitionCount = 0 THEN
+                  MESSAGE('No s''han trobat peticions per a la data especificada.');
+          END;
+
+      MESSAGE('Data de les peticions: ' + FORMAT(DateToSearchInput) + FORMAT(CR) + FORMAT(LF) +
+              'Nombre de peticions: ' + FORMAT(PetitionCount));
+    END;
+
+    LOCAL PROCEDURE PeticionsUsuariDia@1106000002();
+    VAR
+      TelefonACercar@1106000000 : Text;
+      DateToSearchInput@1106000001 : Date;
+      PetitionCount@1106000002 : Integer;
+      DateTimeToSearch@1106000003 : DateTime;
+    BEGIN
+      EVALUATE(TelefonACercar, Window.InputBox('Introduir el teläfon de l''usuari:', 'Comptar peticions per usuari', 'Teläfon de l''usuari', 100, 100));
+      EVALUATE(DateToSearchInput, Window.InputBox('Introduir la data de la petici¢ (DD/MM/AAAA):', 'Comptar peticions per data', 'Data de les peticions', 100, 100));
+
+      Usuaris_imageIA.SETFILTER(Telefon, TelefonACercar);
+      IF Usuaris_imageIA.FINDFIRST THEN BEGIN
+        Peticions.SETRANGE(user, Usuaris_imageIA.id);
+        IF Peticions.FINDSET THEN BEGIN
+          REPEAT
+            IF DT2DATE(Peticions.data) = DateToSearchInput THEN BEGIN
+              PetitionCount := PetitionCount + 1
+            END;
+          UNTIL Peticions.NEXT = 0;
+        END;
+      END;
+
+      MESSAGE('Teläfon de l''usuari: ' + TelefonACercar + FORMAT(CR) + FORMAT(LF) +
+              'Data de les peticions: ' + FORMAT(DateToSearchInput) + FORMAT(CR) + FORMAT(LF) +
+              'Nombre de peticions: ' + FORMAT(PetitionCount));
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
